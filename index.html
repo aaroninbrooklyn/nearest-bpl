@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Find Nearest BPL</title>
+    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places"></script>
+  </head>
+  <body>
+    <p>Finding the closest BPL location...</p>
+
+    <script>
+      function init() {
+        navigator.geolocation.getCurrentPosition((position) => {
+          const userLocation = new google.maps.LatLng(
+            position.coords.latitude,
+            position.coords.longitude
+          );
+
+          const request = {
+            location: userLocation,
+            radius: '5000',
+            keyword: 'Brooklyn Public Library',
+            openNow: true
+          };
+
+          const service = new google.maps.places.PlacesService(document.createElement('div'));
+          service.nearbySearch(request, (results, status) => {
+            if (status === google.maps.places.PlacesServiceStatus.OK && results.length > 0) {
+              const closest = results[0];
+              const destination = `${closest.geometry.location.lat()},${closest.geometry.location.lng()}`;
+
+              const mapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${userLocation.lat()},${userLocation.lng()}&destination=${destination}&travelmode=bicycling`;
+              window.location.href = mapsUrl;
+            } else {
+              document.body.innerHTML = "<p>Couldn't find a nearby BPL location.</p>";
+            }
+          });
+        }, () => {
+          document.body.innerHTML = "<p>Location access denied.</p>";
+        });
+      }
+
+      window.onload = init;
+    </script>
+  </body>
+</html>
