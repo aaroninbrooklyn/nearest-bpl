@@ -1,51 +1,72 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <title>Find Nearest BPL</title>
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB6W4blPYuS_a5Hs57eCnTPBf2tzxtnnjA&libraries=places"></script>
-  </head>
-  <body>
-    <p>Finding the closest BPL location...</p>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Find Nearest BPL Location</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      padding: 50px;
+      background-color: #f6f6f6;
+    }
+    img {
+      max-width: 160px;
+      margin-bottom: 20px;
+    }
+    .message {
+      font-size: 1.2em;
+      margin-top: 20px;
+    }
+  </style>
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDIxmznCGiWTAjfJaKA8V0k4oFL6uDeEug&libraries=places"></script>
+</head>
+<body>
+  <img src="https://www.bklynlibrary.org/sites/default/files/bpl-primary-logo_0.png" alt="Brooklyn Public Library logo" />
+  <div class="message" id="message">Finding the closest BPL location near you...</div>
 
-    <script>
-      function init() {
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            const userLocation = new google.maps.LatLng(
-              position.coords.latitude,
-              position.coords.longitude
-            );
-
-            const request = {
-              location: userLocation,
-              rankBy: google.maps.places.RankBy.DISTANCE,
-              keyword: "Brooklyn Public Library",
-              openNow: true
-            };
-
-            const service = new google.maps.places.PlacesService(document.createElement('div'));
-            service.nearbySearch(request, (results, status) => {
-              console.log("Status:", status);
-              console.log("Results:", results);
-
-              if (status === google.maps.places.PlacesServiceStatus.OK && results.length > 0) {
-                const closest = results[0];
-                const destination = `${closest.geometry.location.lat()},${closest.geometry.location.lng()}`;
-
-                const mapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${userLocation.lat()},${userLocation.lng()}&destination=${destination}&travelmode=bicycling`;
-                window.location.href = mapsUrl;
-              } else {
-                document.body.innerHTML = "<p>Couldn't find a nearby BPL location. Try again in a moment or check your location settings.</p>";
-              }
-            });
-          },
-          () => {
-            document.body.innerHTML = "<p>Location access denied. Please allow location access and refresh the page.</p>";
-          }
-        );
+  <script>
+    function init() {
+      if (!navigator.geolocation) {
+        document.getElementById('message').textContent = "Your browser doesn't support location. Please try again on a different device.";
+        return;
       }
 
-      window.onload = init;
-    </script>
-  </body>
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const userLocation = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+
+          const request = {
+            location: userLocation,
+            rankBy: google.maps.places.RankBy.DISTANCE,
+            keyword: "Brooklyn Public Library",
+            openNow: true
+          };
+
+          const service = new google.maps.places.PlacesService(document.createElement('div'));
+          service.nearbySearch(request, (results, status) => {
+            if (status === google.maps.places.PlacesServiceStatus.OK && results.length > 0) {
+              const closest = results[0];
+              const destination = `${closest.geometry.location.lat()},${closest.geometry.location.lng()}`;
+              const mapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${userLocation.lat()},${userLocation.lng()}&destination=${destination}&travelmode=bicycling`;
+
+              // Optional short delay so user sees the message
+              setTimeout(() => {
+                window.location.href = mapsUrl;
+              }, 1500);
+            } else {
+              document.getElementById('message').textContent = "Couldn't find a nearby BPL location. Try again later or make sure location is enabled.";
+            }
+          });
+        },
+        () => {
+          document.getElementById('message').textContent = "Location access denied. Please allow location access and refresh the page.";
+        }
+      );
+    }
+
+    window.onload = init;
+  </script>
+</body>
 </html>
