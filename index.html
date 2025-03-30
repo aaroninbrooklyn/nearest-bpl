@@ -4,22 +4,35 @@
     <title>Find Your Closest BPL</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <style>
-      body {
-        font-family: sans-serif;
+      html, body {
+        height: 100%;
         margin: 0;
         padding: 0;
+      }
+      body {
+        font-family: sans-serif;
+      }
+      header {
         text-align: center;
+        padding: 0.5rem 1rem;
+        background: #fff;
+      }
+      header img {
+        max-width: 120px;
+        display: block;
+        margin: 0 auto 0.25rem;
+      }
+      header h2 {
+        font-size: 1rem;
+        margin: 0.25rem 0;
+      }
+      header p {
+        font-size: 0.9rem;
+        color: #555;
       }
       #map {
         height: 90vh;
         width: 100%;
-      }
-      header {
-        padding: 1rem;
-      }
-      img {
-        max-width: 160px;
-        margin-bottom: 10px;
       }
     </style>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDIxmznCGiWTAjfJaKA8V0k4oFL6uDeEug"></script>
@@ -39,12 +52,19 @@
         { name: "Arts & Culture", address: "10 Lafayette Ave", phone: "718.230.2700", lat: 40.686727, lng: -73.978741 },
         { name: "Bay Ridge", address: "7223 Ridge Blvd", phone: "718.748.5709", lat: 40.633645, lng: -74.029653 },
         { name: "Bedford", address: "496 Franklin Ave.", phone: "718.623.0012", lat: 40.681839, lng: -73.956023 },
-        // 🔽 include all the remaining branches here...
+        { name: "Bensonhurst", address: "6100 20th Ave", phone: "718.236.6717", lat: 40.612508, lng: -73.987655 },
+        { name: "Brownsville", address: "61 Glenmore Ave", phone: "718.495.1027", lat: 40.663206, lng: -73.902234 },
+        { name: "Brooklyn Heights", address: "280 Cadman Plaza W", phone: "718.623.7100", lat: 40.695645, lng: -73.991264 },
+        { name: "Bushwick", address: "340 Bushwick Ave", phone: "718.602.1348", lat: 40.695136, lng: -73.918187 },
+        { name: "Canarsie", address: "1580 Rockaway Pkwy", phone: "718.649.6340", lat: 40.640152, lng: -73.900274 },
+        { name: "Carroll Gardens", address: "396 Clinton St", phone: "718.858.5580", lat: 40.68144, lng: -73.995668 },
+        { name: "Central", address: "10 Grand Army Plaza", phone: "718.230.2100", lat: 40.672, lng: -73.968 },
+        // 🔽 Include all other branches in the list here
       ];
 
       function getDistance(lat1, lng1, lat2, lng2) {
         const toRad = x => (x * Math.PI) / 180;
-        const R = 6371;
+        const R = 6371; // Earth radius in km
         const dLat = toRad(lat2 - lat1);
         const dLng = toRad(lng2 - lng1);
         const a =
@@ -90,7 +110,7 @@
                 content: `<div style="font-size:14px;line-height:1.4"><strong>${branch.name}</strong><br>${branch.address}<br>${branch.phone}</div>`
               });
 
-              // Open info window immediately
+              // Open info window automatically
               info.open(map, marker);
 
               marker.addListener("click", () => {
