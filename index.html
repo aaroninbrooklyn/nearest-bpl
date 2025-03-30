@@ -1,72 +1,102 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Find Nearest BPL Location</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      text-align: center;
-      padding: 50px;
-      background-color: #f6f6f6;
-    }
-    img {
-      max-width: 160px;
-      margin-bottom: 20px;
-    }
-    .message {
-      font-size: 1.2em;
-      margin-top: 20px;
-    }
-  </style>
-  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDIxmznCGiWTAjfJaKA8V0k4oFL6uDeEug&libraries=places"></script>
-</head>
-<body>
-  <img src="https://www.bklynlibrary.org/sites/default/files/bpl-primary-logo_0.png" alt="Brooklyn Public Library logo" />
-  <div class="message" id="message">Finding the closest BPL location near you...</div>
+<html>
+  <head>
+    <title>Find Your Closest BPL</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      body {
+        font-family: sans-serif;
+        margin: 0;
+        padding: 0;
+        text-align: center;
+      }
+      #map {
+        height: 90vh;
+        width: 100%;
+      }
+      header {
+        padding: 1rem;
+      }
+      img {
+        max-width: 160px;
+        margin-bottom: 10px;
+      }
+    </style>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDIxmznCGiWTAjfJaKA8V0k4oFL6uDeEug&libraries=places"></script>
+  </head>
+  <body>
+    <header>
+      <img src="https://www.bklynlibrary.org/sites/default/files/bpl-primary-logo_0.png" alt="Brooklyn Public Library logo" />
+      <h2>Choose the closest BPL location</h2>
+      <p>Click a marker for biking directions</p>
+    </header>
+    <div id="map"></div>
 
-  <script>
-    function init() {
-      if (!navigator.geolocation) {
-        document.getElementById('message').textContent = "Your browser doesn't support location. Please try again on a different device.";
-        return;
+    <script>
+      function initMap() {
+        if (!navigator.geolocation) {
+          alert("Geolocation not supported. Please use a different device.");
+          return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const userLocation = new google.maps.LatLng(
+              position.coords.latitude,
+              position.coords.longitude
+            );
+
+            const map = new google.maps.Map(document.getElementById("map"), {
+              center: userLocation,
+              zoom: 14
+            });
+
+            new google.maps.Marker({
+              position: userLocation,
+              map: map,
+              title: "You are here",
+              icon: {
+                url: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png"
+              }
+            });
+
+            const service = new google.maps.places.PlacesService(map);
+            const request = {
+              location: userLocation,
+              rankBy: google.maps.places.RankBy.DISTANCE,
+              keyword: "Brooklyn Public Library",
+              openNow: true
+            };
+
+            service.nearbySearch(request, (results, status) => {
+              if (status === google.maps.places.PlacesServiceStatus.OK && results.length > 0) {
+                const topResults = results.slice(0, 5);
+                topResults.forEach((place) => {
+                  const marker = new google.maps.Marker({
+                    position: place.geometry.location,
+                    map: map,
+                    title: place.name
+                  });
+
+                  marker.addListener("click", () => {
+                    const destination = `${place.geometry.location.lat()},${place.geometry.location.lng()}`;
+                    const origin = `${userLocation.lat()},${userLocation.lng()}`;
+                    const directionsUrl = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&travelmode=bicycling`;
+                    window.open(directionsUrl, "_blank");
+                  });
+                });
+              } else {
+                alert("Couldn’t find nearby BPL locations.");
+              }
+            });
+          },
+          () => {
+            alert("Location access denied. Please allow location access and refresh the page.");
+          }
+        );
       }
 
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const userLocation = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
-
-          const request = {
-            location: userLocation,
-            rankBy: google.maps.places.RankBy.DISTANCE,
-            keyword: "Brooklyn Public Library",
-            openNow: true
-          };
-
-          const service = new google.maps.places.PlacesService(document.createElement('div'));
-          service.nearbySearch(request, (results, status) => {
-            if (status === google.maps.places.PlacesServiceStatus.OK && results.length > 0) {
-              const closest = results[0];
-              const destination = `${closest.geometry.location.lat()},${closest.geometry.location.lng()}`;
-              const mapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${userLocation.lat()},${userLocation.lng()}&destination=${destination}&travelmode=bicycling`;
-
-              // Optional short delay so user sees the message
-              setTimeout(() => {
-                window.location.href = mapsUrl;
-              }, 1500);
-            } else {
-              document.getElementById('message').textContent = "Couldn't find a nearby BPL location. Try again later or make sure location is enabled.";
-            }
-          });
-        },
-        () => {
-          document.getElementById('message').textContent = "Location access denied. Please allow location access and refresh the page.";
-        }
-      );
-    }
-
-    window.onload = init;
-  </script>
-</body>
+      window.onload = initMap;
+    </script>
+  </body>
 </html>
